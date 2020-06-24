@@ -1,0 +1,20 @@
+name: deploy-prod
+
+on:
+  push:
+    branches:
+      - prod
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: init ssh, deploy
+      run: |
+        eval $(ssh-agent -s)
+        echo "${{secrets.PROD_SERVER_SSH_PRIV_KEY}}" > deploy.key
+        mkdir -p ~/.ssh
+        chmod 0600 deploy.key
+        ssh-add deploy.key
+        echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+        ssh root@${{secrets.PROD_SERVER_IP}} "cd /apps/your-app-path && git pull && sh deploy-prod.sh "
